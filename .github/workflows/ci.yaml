@@ -1,13 +1,19 @@
 name: AWS CI
-on: [push]
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
 jobs:
-  run:
-    name: Tests
-    runs-on: ${{ matrix.operating-system }}
+  build:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-latest]
+        os:
+          - ubuntu-latest
+
         ocaml-compiler:
           - 4.08.x
           - 4.09.x
@@ -15,45 +21,64 @@ jobs:
           - 4.11.x
           - 4.12.x
           - 4.13.x
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - uses: ocaml/setup-ocaml@v2
-      with:
-        ocaml-version: ${{ matrix.ocaml-version }}
-    - run: |
-        opam pin add aws.dev -n .
-        opam pin add aws-lwt.dev -n .
-        opam pin add aws-async.dev -n .
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        # Pin the generated bindings
-        opam pin add aws-autoscaling.dev -n .
-        opam pin add aws-cloudformation.dev -n .
-        opam pin add aws-cloudtrail.dev -n .
-        opam pin add aws-cloudwatch.dev -n .
-        opam pin add aws-ec2.dev -n .
-        opam pin add aws-elasticache.dev -n .
-        opam pin add aws-elasticloadbalancing.dev -n .
-        opam pin add aws-rds.dev -n .
-        opam pin add aws-route53.dev -n .
-        opam pin add aws-sdb.dev -n .
-        opam pin add aws-sqs.dev -n .
-        opam pin add aws-ssm.dev -n .
-        opam pin add aws-sts.dev -n .
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-    - name: Packages
-      run: |
-        opam depext -yt aws aws-lwt aws-async \
-                        aws-autoscaling aws-cloudformation aws-cloudtrail \
-                        aws-cloudwatch aws-ec2 aws-elasticache \
-                        aws-elasticloadbalancing \
-                        aws-rds aws-route53 aws-sdb aws-sqs aws-ssm aws-sts
+      - name: Install dependencies
+        run: |
+          opam install . --deps-only --with-test
 
-    - name: Dependencies
-      run: opam install -t . --deps-only
+      - name: Build
+        run: |
+          opam exec -- dune build @all
+
+      - name: Tests
+        run: |
+          opam exec -- dune build @runtest
+
+
+    # - run: |
+    #     opam pin add aws.dev -n .
+    #     opam pin add aws-lwt.dev -n .
+    #     opam pin add aws-async.dev -n .
+
+    #     # Pin the generated bindings
+    #     opam pin add aws-autoscaling.dev -n .
+    #     opam pin add aws-cloudformation.dev -n .
+    #     opam pin add aws-cloudtrail.dev -n .
+    #     opam pin add aws-cloudwatch.dev -n .
+    #     opam pin add aws-ec2.dev -n .
+    #     opam pin add aws-elasticache.dev -n .
+    #     opam pin add aws-elasticloadbalancing.dev -n .
+    #     opam pin add aws-rds.dev -n .
+    #     opam pin add aws-route53.dev -n .
+    #     opam pin add aws-sdb.dev -n .
+    #     opam pin add aws-sqs.dev -n .
+    #     opam pin add aws-ssm.dev -n .
+    #     opam pin add aws-sts.dev -n .
+
+    # - name: Packages
+    #   run: |
+    #     opam depext -yt aws aws-lwt aws-async \
+    #                     aws-autoscaling aws-cloudformation aws-cloudtrail \
+    #                     aws-cloudwatch aws-ec2 aws-elasticache \
+    #                     aws-elasticloadbalancing \
+    #                     aws-rds aws-route53 aws-sdb aws-sqs aws-ssm aws-sts
+
+    # - name: Dependencies
+    #   run: opam install -t . --deps-only
       
-    - name: Build
-      run: opam exec -- dune build
+    # - name: Build
+    #   run: opam exec -- dune build
     # Running tests requires AWS permissions disabling for now.
     # - name: Test
     #   run: opam exec -- dune runtest
