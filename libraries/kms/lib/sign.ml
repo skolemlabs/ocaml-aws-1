@@ -25,7 +25,9 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "SignResponse" (snd xml) in
+    let resp =
+      Util.option_bind (Xml.member "SignResponse" (snd xml)) (Xml.member "SignResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp SignResponse.parse)

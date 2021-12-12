@@ -749,7 +749,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"SignRequest"},
-      "output":{"shape":"SignResponse"},
+      "output":{
+        "shape":"SignResponse",
+        "resultWrapper":"SignResult"
+      },
       "errors":[
         {"shape":"NotFoundException"},
         {"shape":"DisabledException"},
