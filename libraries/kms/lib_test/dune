@@ -1,11 +1,10 @@
-(tests
+(executables
  (names test_async test_lwt)
  (flags
   (:standard -w -27 -w -33))
- (package aws-route53)
- (modules test_async test_lwt aws_route53_test)
- (libraries aws aws-route53 aws-async aws-lwt ounit2 yojson async
-   cohttp-async lwt cohttp-lwt cohttp-lwt-unix))
+ (modules test_async test_lwt)
+ (libraries aws aws-kms aws-async aws-lwt ounit2 yojson async cohttp-async
+   lwt cohttp-lwt cohttp-lwt-unix))
 
 (rule
  (alias runtest)
