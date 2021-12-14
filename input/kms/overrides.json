@@ -11,5 +11,12 @@
                 "CiphertextBlob"
             ]
         }
+    },
+    "operationOverrides": {
+        "Sign": {
+            "output": {
+                "resultWrapper": "SignResult"
+            }
+        }
     }
 }
