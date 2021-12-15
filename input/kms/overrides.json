@@ -12,10 +12,12 @@
             ]
         }
     },
-    "operationOverrides": {
-        "Sign": {
-            "output": {
-                "resultWrapper": "SignResult"
+    "additionalValues": {
+        "operations": {
+            "Sign": {
+                "output": {
+                    "resultWrapper": "SignResult"
+                }
             }
         }
     }

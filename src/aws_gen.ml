@@ -98,40 +98,30 @@ module Json = struct
         with Not_found -> key, val_)
       original
 
-  let override_operations original overrides : (string * Yojson.Basic.t) list =
-    let open Yojson.Basic.Util in
-    List.map
-      (fun (key, val_) ->
-        try
-          let operationOverrides = `Assoc (to_assoc (List.assoc key overrides)) in
-          let newVal = merge val_ operationOverrides in
-          key, newVal
-        with Not_found -> key, val_)
-      original
-
   let override original overrides =
     let open Yojson.Basic.Util in
     let original = to_assoc original in
     let overrides = to_assoc overrides in
-    `Assoc
-      (List.map
-         (fun (key, val_) ->
-           if key = "shapes"
-           then
-             let types =
-               try to_assoc (List.assoc "typeOverrides" overrides) with _ -> []
-             in
-             key, `Assoc (override_shapes (to_assoc val_) types)
-           else if key = "operations"
-           then (
-             let operations =
-               try to_assoc (List.assoc "operationOverrides" overrides) with _ -> []
-             in
-             let newVal = `Assoc (override_operations (to_assoc val_) operations) in
-             print_endline (Yojson.Basic.to_string newVal);
-             key, newVal)
-           else key, val_)
-         original)
+    let overriden =
+      `Assoc
+        (List.map
+           (fun (key, val_) ->
+             if key = "shapes"
+             then
+               let types =
+                 try to_assoc (List.assoc "typeOverrides" overrides) with _ -> []
+               in
+               key, `Assoc (override_shapes (to_assoc val_) types)
+             else key, val_)
+           original)
+    in
+    let overriden =
+      let additional_values =
+        `Assoc (try to_assoc (List.assoc "additionalValues" overrides) with _ -> [])
+      in
+      merge overriden additional_values
+    in
+    overriden
 end
 
 let log s = Printf.eprintf (s ^^ "\n%!")
