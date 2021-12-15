@@ -33,7 +33,7 @@ functor
   (Runtime : Runtime)
   ->
   struct
-    let sign config _ =
+    let sign config =
       let message = "OCaml AWS" in
       let signing_algorithm = Aws_kms.Types.SigningAlgorithmSpec.RSASSA_PSS_SHA_512 in
       let key_id = config.key_id in
@@ -50,15 +50,23 @@ functor
                (module Sign)
                request))
       in
-      match result with
-      | `Ok resp -> (
-          let open Types.SignResponse in
-          match resp.signature with
-          | Some signature -> print_endline signature
-          | None -> print_endline "Got no signature")
-      | `Error e -> print_endline (Aws.Error.format Errors_internal.to_string e)
+      result
 
-    let suite config = "Test KMS" >::: [ "Sign" >:: sign config ]
+    let sign_test config _ =
+      let result = sign config in
+      "Sign returns signature"
+      @?
+      match result with
+      | `Ok resp ->
+          Printf.printf
+            "%s\n"
+            (Yojson.Basic.to_string Types.SignResponse.(to_json (of_json (to_json resp))));
+          true
+      | `Error err ->
+          Printf.printf "Error: %s\n" (Aws.Error.format Errors_internal.to_string err);
+          false
+
+    let suite config = "Test KMS" >::: [ "Sign" >:: sign_test config ]
 
     let () =
       let access_key =
