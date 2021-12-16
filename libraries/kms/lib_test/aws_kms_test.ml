@@ -66,7 +66,34 @@ functor
           Printf.printf "Error: %s\n" (Aws.Error.format Errors_internal.to_string err);
           false
 
-    let suite config = "Test KMS" >::: [ "Sign" >:: sign_test config ]
+    let list_keys_test config _ =
+      let request = Aws_kms.Types.ListKeysRequest.make () in
+      let result =
+        Runtime.(
+          un_m
+            (run_request
+               ~region:config.region
+               ~access_key:config.access_key
+               ~secret_key:config.secret_key
+               (module ListKeys)
+               request))
+      in
+      "List keys returns successfully"
+      @?
+      match result with
+      | `Ok resp ->
+          Printf.printf
+            "%s\n"
+            (Yojson.Basic.to_string
+               Types.ListKeysResponse.(to_json (of_json (to_json resp))));
+          true
+      | `Error err ->
+          Printf.printf "Error: %s\n" (Aws.Error.format Errors_internal.to_string err);
+          false
+
+    let suite config =
+      "Test KMS"
+      >::: [ "Sign" >:: sign_test config; "ListKeys" >:: list_keys_test config ]
 
     let () =
       let access_key =
