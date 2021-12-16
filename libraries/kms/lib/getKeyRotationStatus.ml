@@ -26,7 +26,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "GetKeyRotationStatusResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "GetKeyRotationStatusResponse" (snd xml))
+        (Xml.member "GetKeyRotationStatusResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp GetKeyRotationStatusResponse.parse)

@@ -25,7 +25,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "CreateKeyResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "CreateKeyResponse" (snd xml))
+        (Xml.member "CreateKeyResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp CreateKeyResponse.parse)

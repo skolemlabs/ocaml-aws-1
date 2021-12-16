@@ -26,7 +26,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "DescribeCustomKeyStoresResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "DescribeCustomKeyStoresResponse" (snd xml))
+        (Xml.member "DescribeCustomKeyStoresResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp DescribeCustomKeyStoresResponse.parse)

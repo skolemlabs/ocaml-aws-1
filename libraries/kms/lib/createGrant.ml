@@ -25,7 +25,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "CreateGrantResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "CreateGrantResponse" (snd xml))
+        (Xml.member "CreateGrantResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp CreateGrantResponse.parse)

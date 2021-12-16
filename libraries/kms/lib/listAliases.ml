@@ -25,7 +25,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "ListAliasesResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "ListAliasesResponse" (snd xml))
+        (Xml.member "ListAliasesResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp ListAliasesResponse.parse)

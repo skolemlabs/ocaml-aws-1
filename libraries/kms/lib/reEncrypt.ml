@@ -25,7 +25,11 @@ let to_http service region req =
 let of_http body =
   try
     let xml = Ezxmlm.from_string body in
-    let resp = Xml.member "ReEncryptResponse" (snd xml) in
+    let resp =
+      Util.option_bind
+        (Xml.member "ReEncryptResponse" (snd xml))
+        (Xml.member "ReEncryptResult")
+    in
     try
       Util.or_error
         (Util.option_bind resp ReEncryptResponse.parse)
